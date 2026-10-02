@@ -29,7 +29,9 @@ if IsQQ(F) then
     return ChangeRingCurve(X, h);
 end if;
 
-K := NumberFieldExtra(DefiningPolynomial(F) : prec := prec);
+/* The field must be its own base: the non-geometric functions descend to
+ * BaseRing(X)`base, and NumberFieldExtra would make that QQ. */
+K := BaseNumberFieldExtra(DefiningPolynomial(F), prec);
 test, h := IsIsomorphic(F, K);
 assert test;
 return ChangeRingCurve(X, h);
