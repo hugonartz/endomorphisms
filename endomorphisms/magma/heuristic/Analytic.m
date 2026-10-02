@@ -233,7 +233,7 @@ return gens, hFK;
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld : UpperBound := 16, DegreeDivides := Infinity(), UseSplittingField := true, s0 := []) -> SeqEnum
+intrinsic GeometricEndomorphismRepresentation(P::ModMatFldElt, F::Fld : UpperBound := 16, DegreeDivides := Infinity(), UseSplittingField := true, s0 := [], MaxDegree := Infinity()) -> SeqEnum
 {Given period matrices P and a field F, this function determines a ZZ-basis of
 the corresponding abelian variety. These are returned as triples of an
 algebraized tangent representation A over a number field K, a homology
@@ -253,7 +253,7 @@ seqPart := &cat[ Eltseq(gen[1]) : gen in gensPart ];
 vprint EndoFind : "";
 vprint EndoFind : "Finding number field defined by endomorphisms...";
 if UseSplittingField then
-    K, seq, hFK := SplittingFieldExtra(seqPart, F : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
+    K, seq, hFK := SplittingFieldExtra(seqPart, F : UpperBound := UpperBound, DegreeDivides := DegreeDivides, MaxDegree := MaxDegree);
 else
     K, seq, hFK := NumberFieldExtra(seqPart, F : UpperBound := UpperBound, DegreeDivides := DegreeDivides);
 end if;
@@ -298,7 +298,7 @@ return GeometricEndomorphismRepresentationCC(P : s0 := [1..g]);
 end intrinsic;
 
 
-intrinsic GeometricEndomorphismRepresentation(X::. : UpperBound := 16, DegreeDivides := Infinity(), CC := false) -> SeqEnum
+intrinsic GeometricEndomorphismRepresentation(X::. : UpperBound := 16, DegreeDivides := Infinity(), CC := false, MaxDegree := Infinity()) -> SeqEnum
 {Given a curve X over a field F, this function determines a ZZ-basis of the
 corresponding abelian variety. These are returned as triples of an algebraized
 tangent representation A over a number field K, a homology representation R and
@@ -319,7 +319,7 @@ if CC then
     X`geo_endo_rep_CC := GeometricEndomorphismRepresentationCC(P : s0 := [1..g]);
     return X`geo_endo_rep_CC;
 end if;
-X`geo_endo_rep := GeometricEndomorphismRepresentation(P, F : UpperBound := UpperBound, DegreeDivides := DegreeDivides, s0 := [1..g]);
+X`geo_endo_rep := GeometricEndomorphismRepresentation(P, F : UpperBound := UpperBound, DegreeDivides := DegreeDivides, s0 := [1..g], MaxDegree := MaxDegree);
 return X`geo_endo_rep;
 
 end intrinsic;
