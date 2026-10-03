@@ -121,12 +121,36 @@ while degf lt UpperBound do
             f := &+[ &+[ seq[i*degK + j + 1]*genK^j : j in [0..(degK - 1)] ] * R.1^i : i in [0..degf] ];
             f := Evaluate(f, R.1 / faca); f /:= LeadingCoefficient(f);
             if TestCloseToRoot(f, aCC) then
-                if ht lt CCK`height_bound then
+                /* Information bound (the usual algdep test): IntegralLeftKernel reduced
+                 * a lattice of n = (degf + 1)*degK integer unknowns against k real
+                 * equations at scale 10^prec_algdep -- k = 1 when the column is real,
+                 * k = 2 when it is split into real and imaginary parts -- so a generic
+                 * input has spurious relations of height about 10^(k*prec_algdep/n), and
+                 * a relation of height H is only trustworthy when H^n << 10^(k*prec_algdep).
+                 * At precision 100 a real entry has spurious relations passing
+                 * height_bound from degree 15 on (height ~ 10^(95/16)). Ten digits of
+                 * margin, well above LLL's approximation factor. */
+                /* n counts the unknowns of the relation itself, Degree(f) + 1 coefficients
+                 * in K: the loop degree degf overstates it when the top coefficients came
+                 * out zero, in particular on the "repeat" path below, where the same
+                 * relation is seen again two degrees up. */
+                n := (Degree(f) + 1)*degK;
+                k := Max([ Abs(Im(c)) : c in MLine ]) lt CCK`epscomp select 1 else 2;
+                logH := ht le 1 select 0 else Log(RealField(30) ! ht)/Log(RealField(30) ! 10);
+                sane := n*logH le k*CCK`prec_algdep - 10;
+                vprint EndoFind, 3 : "";
+                vprintf EndoFind, 3 : "Information bound: n*log10(H) = %o*%o = %o against %o*%o - 10 = %o\n",
+                    n, RealField(5) ! logH, RealField(5) ! (n*logH), k, CCK`prec_algdep, k*CCK`prec_algdep - 10;
+                if not sane then
+                    vprint EndoFind, 3 : "Relation rejected by the information bound (height too large for the precision):";
+                    vprint EndoFind, 3 : f;
+                end if;
+                if sane and ht lt CCK`height_bound then
                     vprint EndoFind, 3 : "";
                     vprint EndoFind, 3 : f;
                     vprint EndoFind, 3 : "done determining minimal polynomial using LLL.";
                     return f;
-                elif &and[ Type(entry) eq SeqEnum : entry in savedrows ] then
+                elif sane and &and[ Type(entry) eq SeqEnum : entry in savedrows ] then
                     testrepeat := true;
                     for i in [1..nsavedrows] do
                         seqold := savedrows[i] cat [ 0 : j in [1..(nsavedrows - i + 1)*degK] ];
@@ -341,8 +365,16 @@ if not UseQQ then return MinimalPolynomialLLL(aCC, K : UpperBound:=UpperBound, D
 
 CCK := K`CC; CCiota := Parent(K`iota);
 assert Precision(Parent(aCC)) ge Precision(CCK);
-/* UpperBound bounds the degree over K, so over QQ it scales like DegreeDivides */
-gQQ := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound:=Degree(K)*UpperBound, DegreeDivides:=Degree(K)*DegreeDivides);
+/* UpperBound bounds the degree over K, so over QQ it scales like DegreeDivides.
+ * When the caller bounds the degree of the field of definition L over the base
+ * F (MaxDegree), the element lies in L and [QQ(a):QQ] <= [L:QQ] <= MaxDegree*[F:QQ],
+ * which caps the number of LLL steps spent on an unrecognisable element. */
+ubQQ := Degree(K)*UpperBound;
+if MaxDegree ne Infinity() then
+    dF := assigned K`base select Degree(K`base) else Degree(K);
+    ubQQ := Min(ubQQ, MaxDegree*dF);
+end if;
+gQQ := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound:=ubQQ, DegreeDivides:=Degree(K)*DegreeDivides);
 //return gQQ;
 if Degree(gQQ) eq 1 then return ChangeRing(gQQ, K), gQQ; end if;
 /* A spurious gQQ makes the root finding and factorization below hang. With F the
