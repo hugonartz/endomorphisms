@@ -610,15 +610,14 @@ return L, [ tupa[1] : tupa in tupsa ], h;
 end intrinsic;
 
 
-procedure CheckSplittingDegree(g, MaxDegree)
-// Raises an error if the splitting field of g has degree larger than MaxDegree
-// over its base ring, before that splitting field is computed.
+intrinsic CheckSplittingDegree(g::RngUPolElt, bound::.)
+{Raises an error if the splitting field of g over its base ring has degree larger than bound, before anything expensive is done with g.}
 
-if MaxDegree eq Infinity() then return; end if;
-n := Degree(g) gt MaxDegree select Degree(g) else #GaloisGroup(g);
-error if n gt MaxDegree, Sprintf("Splitting field of degree %o exceeds MaxDegree %o: spurious algebraization, try increasing the precision", n, MaxDegree);
+if bound eq Infinity() then return; end if;
+n := Degree(g) gt bound select Degree(g) else #GaloisGroup(g);
+error if n gt bound, Sprintf("Splitting field of degree %o exceeds the bound %o: spurious algebraization, try increasing the precision", n, bound);
 
-end procedure;
+end intrinsic;
 
 
 function ExtendSplittingFieldExtraStep(K, tupsa, anewCC : UpperBound:= 16, DegreeDivides:=Infinity(), Simplify:=true, MaxDegree:=Infinity())
@@ -639,7 +638,7 @@ function ExtendSplittingFieldExtraStepQQ(K, tupsa, anewCC : UpperBound:=16, Degr
 
 // Determine minimal polynomial over K
 //gK := MinimalPolynomialExtra(anewCC, K);
-gK, gQQ := MinimalPolynomialExtra(anewCC, K : UpperBound:=UpperBound, DegreeDivides:=DegreeDivides, UseQQ:=true);
+gK, gQQ := MinimalPolynomialExtra(anewCC, K : UpperBound:=UpperBound, DegreeDivides:=DegreeDivides, UseQQ:=true, MaxDegree:=MaxDegree);
 // Done in case of degree 1
 if Degree(gK) eq 1 then
   anew := -Coefficient(gK, 0)/Coefficient(gK, 1);
@@ -721,7 +720,7 @@ function ExtendSplittingFieldExtraStepGen(K, tupsa, anewCC : UpperBound:=16, Deg
 // anewCC, and transports tupsa to that field. Keeps track of morphisms.
 
 // Determine minimal polynomial over K
-gK, gQQ := MinimalPolynomialExtra(anewCC, K : UpperBound:=UpperBound, DegreeDivides:=DegreeDivides);
+gK, gQQ := MinimalPolynomialExtra(anewCC, K : UpperBound:=UpperBound, DegreeDivides:=DegreeDivides, MaxDegree:=MaxDegree);
 // Done in case of degree 1
 if Degree(gK) eq 1 then
   anew := -Coefficient(gK, 0)/Coefficient(gK, 1);

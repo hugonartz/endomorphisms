@@ -323,7 +323,7 @@ return true, Matrix(rows);
 end intrinsic;
 
 
-intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : Alg:=false, UseQQ:=true, UpperBound:=16, DegreeDivides:=Infinity()) -> .
+intrinsic MinimalPolynomialExtra(aCC::FldComElt, K::Fld : Alg:=false, UseQQ:=true, UpperBound:=16, DegreeDivides:=Infinity(), MaxDegree:=Infinity()) -> .
 {
     Given a complex number aCC and a NumberFieldExtra K, finds the minimal polynomial of aCC over K.
     The general version may be more stable than MinimalPolynomialLLL via the use of RootsPari.
@@ -345,6 +345,13 @@ assert Precision(Parent(aCC)) ge Precision(CCK);
 gQQ := MinimalPolynomialLLL(aCC, RationalsExtra(Precision(CCK)) : UpperBound:=Degree(K)*UpperBound, DegreeDivides:=Degree(K)*DegreeDivides);
 //return gQQ;
 if Degree(gQQ) eq 1 then return ChangeRing(gQQ, K), gQQ; end if;
+/* A spurious gQQ makes the root finding and factorization below hang. With F the
+ * base, [F:QQ] = d, the splitting field of gQQ over QQ lies in the compositum of
+ * the d conjugates of the endomorphism field, of degree at most (MaxDegree*d)^d. */
+if MaxDegree ne Infinity() then
+    d := assigned K`base select Degree(K`base) else Degree(K);
+    CheckSplittingDegree(gQQ, (MaxDegree*d)^d);
+end if;
 
 hQQs := FactorizationPari(gQQ, BaseRing(gQQ));
 for hQQ in hQQs do
