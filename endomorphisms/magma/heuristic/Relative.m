@@ -183,8 +183,11 @@ L`iota := InfinitePlacesExtra(L)[1];
 hKL := hom< K -> L | >;
 
 if Simplify then
-  // Final improvement step before returning root
+  // Final improvement step before returning root. TransferAttributesExtra keeps
+  // the pre-Polredabs object as base; the contract of this intrinsic is that
+  // the field is its own base.
   L0, hLL0 := ImproveFieldExtra(L);
+  L0`base := L0; L0`base_gen := L0.1;
   return L0, hLL0(L ! r), hKL * hLL0;
 end if;
 return L, L!r, hKL;
@@ -195,7 +198,7 @@ end intrinsic;
 intrinsic BaseNumberFieldExtra(f::RngUPolElt) -> FldNum
 {Default BaseNumberFieldExtra defined by f with default precision.}
 
-return BaseNumberFieldExtra(f, false);
+return BaseNumberFieldExtra(f, 100);
 
 end intrinsic;
 
@@ -576,6 +579,11 @@ intrinsic SplittingFieldExtra(aCCs::SeqEnum[FldComElt], K::Fld : UpperBound:=16,
 
 // Trivial case
 if #aCCs eq 0 then return K, [ ], CanonicalInclusionMap(K, K); end if;
+// MaxDegree is a bound over the base of K: with a field whose base is QQ it
+// would cap a degree over QQ by a number meant over K, a hard failure for every
+// curve over a number field.
+require MaxDegree eq Infinity() or IsQQ(K) or (assigned K`base and K`base eq K):
+    "MaxDegree bounds degrees over the base field: K must be its own base (BaseNumberFieldExtra)";
 
 // Initiate and make sure that the complex field of K is good for comparison purposes
 L := K; h := CanonicalInclusionMap(K, K);
@@ -614,7 +622,11 @@ intrinsic CheckSplittingDegree(g::RngUPolElt, bound::.)
 {Raises an error if the splitting field of g over its base ring has degree larger than bound, before anything expensive is done with g.}
 
 if bound eq Infinity() then return; end if;
-n := Degree(g) gt bound select Degree(g) else #GaloisGroup(g);
+n := Degree(g);
+if n le bound then
+  error if not IsSquarefree(g), "Spurious algebraization (the polynomial is not squarefree), try increasing the precision";
+  n := #GaloisGroup(g);
+end if;
 error if n gt bound, Sprintf("Splitting field of degree %o exceeds the bound %o: spurious algebraization, try increasing the precision", n, bound);
 
 end intrinsic;

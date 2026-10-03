@@ -215,6 +215,7 @@ K := BaseField(C);
 // converts a curve to be over a NumberFieldExtra if it is not given in that way
 if not assigned K`iota then
     C := CurveExtra(C : prec:=prec);
+    K := BaseField(C);    // the new field; the old one never gets iota
 end if;
 CC := Parent(K`iota);
 

@@ -19,8 +19,16 @@ if Type(F) eq RngInt then
     X := ChangeRing(X, Rationals());
     F := BaseRing(X);
 end if;
-if assigned F`base then
+/* Already a field extra, with the convention below (its own base): keep it. A
+ * number field built with NumberFieldExtra has base QQ and is rebuilt, at its own
+ * precision, since the non-geometric functions would descend to QQ. */
+if assigned F`base and (IsQQ(F) or F`base eq F) then
     return X;
+end if;
+if assigned F`CC then
+    prec := Precision(F`CC);
+elif Type(prec) ne RngIntElt then
+    prec := 100;      /* PeriodMatrix and others pass prec := false for "the default" */
 end if;
 
 if IsQQ(F) then

@@ -241,6 +241,12 @@ representation R and a complex tangent representation ACC. We have ACC P = P R,
 and via the infinite place of K the matrix A is mapped to ACC. The inclusion of
 F into K is the second return value.}
 
+/* MaxDegree bounds [L:F] for the field of definition L of the endomorphisms over
+ * the BASE of F; it is only meaningful when F is its own base (CurveExtra,
+ * BaseNumberFieldExtra). A field with base QQ would put a bound meant over F on a
+ * degree over QQ. */
+require MaxDegree eq Infinity() or IsQQ(F) or (assigned F`base and F`base eq F):
+    "MaxDegree bounds degrees over the base field: build the curve's field with CurveExtra or BaseNumberFieldExtra";
 Q := P;
 /* Determine matrices over CC */
 gensPart := GeometricHomomorphismRepresentationCC(P, Q : s0 := s0);

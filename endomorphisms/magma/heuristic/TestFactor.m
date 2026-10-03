@@ -99,6 +99,9 @@ end function;
 intrinsic MorphismOfSmallDegree(X::Crv, Y::Crv : Bound := 3) -> .
 {Gives a morphism of small degree from X to Y and the base extension of Y to the required field. We allow Y to be defined over an extension of the base field of X.}
 
+// Over fields extra first: PeriodMatrix converts a curve internally and the
+// field objects bound here would otherwise be the old ones, without iota/CC.
+X := CurveExtra(X); Y := CurveExtra(Y);
 F := BaseRing(X); K := BaseRing(Y);
 P := PeriodMatrix(X); Q := PeriodMatrix(Y);
 mor, d0, hKL := MorphismOfSmallDegreePQ(P, Q, K : Bound := Bound);

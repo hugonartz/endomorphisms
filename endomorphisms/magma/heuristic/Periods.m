@@ -89,6 +89,7 @@ F := BaseRing(X);
 if not assigned F`iota then
     // converts a curve to be over a NumberFieldExtra if it is not given in that way
     X := CurveExtra(X : prec:=prec);
+    F := BaseRing(X);     // the new field; the old one never gets iota
 else
     require prec cmpeq false: "The optional parameter prec can only used if the curve is not given over RationalsExtra/NumberFieldExtra";
 end if;
